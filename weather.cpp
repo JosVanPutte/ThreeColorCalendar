@@ -1,12 +1,15 @@
+#include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
 
-String apiKey = YOUR API KEY
+extern const char *API_KEY;
+
+String apiKey = API_KEY;
 String city = "Vlaardingen";
 String countryCode = "NL";
-void INFO(const char *s, const char *m);
+#define INFO Serial.printf
 struct tm getLocalTime(long timestamp);
 
 char *getTimeStr(long t) {

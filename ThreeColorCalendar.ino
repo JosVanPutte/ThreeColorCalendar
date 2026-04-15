@@ -1,21 +1,20 @@
 #include <WiFi.h>
 #include <ArduinoOTA.h>
+#include "google.h"
+#include "keys.h"
 
-const char *ssid PROGMEM = "vanPutte";
-const char *password PROGMEM = "vanputte";
+const char *scriptId = SCRIPTID;
+const char *ssid = SSID;
+const char *password = PASSWORD;
 
 esp_sleep_wakeup_cause_t wakeup_reason;
 const char *getWeather();
 void goToDeepSleep();
-bool setupTime();
-void setupDisplay(const char *w);
+const char *setupTime();
+void setupDisplay(struct calendarEntries *entries, const char *w);
 uint64_t getSecondsToSleep(int targetHour);
 
 void startOTAMode();
-
-void INFO(const char *s, const char *m) {
-  Serial.printf(s, m);
-}
 
 void setup() {
   // Start serieel voor debugging
@@ -35,11 +34,13 @@ void setup() {
     // Blijf hier bijv. 2 minuten wachten op OTA
     startOTAMode(); 
   }
-  if (!setupTime()) {
+  String today = setupTime();
+  if (today.isEmpty()) {
     Serial.println("Mislukt om tijd op te halen");
   }
+  struct calendarEntries *entries = getCalendar(scriptId, today);
   const char * wthr = getWeather();
-  setupDisplay(wthr);
+  setupDisplay(entries, wthr);
   if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) {
     goToDeepSleep();
   }

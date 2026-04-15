@@ -2,13 +2,18 @@
 #include <time.h>
 
 const char* TZ_INFO = "CET-1CEST,M3.5.0,M10.5.0/3"; // De 'magic string' voor NL/BE
+char timeStringBuff[12];
 
-bool setupTime() {
+const char *setupTime() {
   // Configureer tijd met NTP en de tijdzone string
   configTzTime(TZ_INFO, "pool.ntp.org", "time.nist.gov");
   
   struct tm timeinfo;
-  return getLocalTime(&timeinfo);
+  if (getLocalTime(&timeinfo)) {
+    // Formaat: Dag-naam Maand-naam Dag-getal
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%a %b %d", &timeinfo);
+  }
+  return timeStringBuff;
 }
 
 uint64_t getSecondsToSleep(int targetHour) {
