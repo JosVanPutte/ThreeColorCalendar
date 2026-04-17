@@ -2,19 +2,18 @@
 #include <ArduinoJson.h> 
 
 #include "google.h"
+#include "keys.h"
 
 const int maxEntryCount = 5;
 struct calendarEntries calEnt[maxEntryCount];
 
-char *calendarRequest = (char *) malloc(1024);
+const char *calendarRequest = CALENDAR_REQUEST;
 
 HTTPClient http;
 
 int calEntryCount;
-struct calendarEntries *getCalendar(const char *scriptId, String prefix)
+struct calendarEntries *getCalendar(String prefix)
 {
-  sprintf(calendarRequest, "https://script.google.com/macros/s/%s/exec", scriptId);
-
   calEntryCount = 0;
   // Getting calendar from your published google script
   Serial.println("Getting calendar");

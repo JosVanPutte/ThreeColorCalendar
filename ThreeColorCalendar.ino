@@ -2,8 +2,10 @@
 #include <ArduinoOTA.h>
 #include "google.h"
 #include "keys.h"
+#include <Preferences.h>
 
-const char *scriptId = SCRIPTID;
+Preferences prefs;
+
 const char *ssid = SSID;
 const char *password = PASSWORD;
 
@@ -11,7 +13,7 @@ esp_sleep_wakeup_cause_t wakeup_reason;
 const char *getWeather();
 void goToDeepSleep();
 const char *setupTime();
-void setupDisplay(struct calendarEntries *entries, const char *w);
+void setupDisplay(struct calendarEntries *entries, const char *w, bool crashed);
 uint64_t getSecondsToSleep(int targetHour);
 
 void startOTAMode();
@@ -19,9 +21,13 @@ void startOTAMode();
 void setup() {
   // Start serieel voor debugging
   Serial.begin(115200);
+  prefs.begin("boot-status", false);
+  bool crashed = prefs.getBool("crash", false);
+  prefs.putBool("crash", true);
   delay(200); 
   Serial.println("Systeem start op...");
   WiFi.mode(WIFI_STA);
+  WiFi.setHostname("ThreeColorDisplayESP");
   WiFi.begin(ssid, password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
     delay(500);
@@ -29,19 +35,19 @@ void setup() {
   // Check waarom we wakker zijn geworden
   wakeup_reason = esp_sleep_get_wakeup_cause();
 
-  if (wakeup_reason != ESP_SLEEP_WAKEUP_TIMER) {
-    Serial.println("Start OTA Modus...");
-    // Blijf hier bijv. 2 minuten wachten op OTA
-    startOTAMode(); 
-  }
+  Serial.println("Start OTA Modus...");
+  // Blijf hier bijv. 2 minuten wachten op OTA
+  startOTAMode(); 
   String today = setupTime();
   if (today.isEmpty()) {
     Serial.println("Mislukt om tijd op te halen");
   }
-  struct calendarEntries *entries = getCalendar(scriptId, today);
+  struct calendarEntries *entries = getCalendar(today);
   const char * wthr = getWeather();
-  setupDisplay(entries, wthr);
-  if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) {
+  if (crashed) wthr = "CRASHED";
+  setupDisplay(entries, wthr, crashed);
+  prefs.putBool("crash", false);
+  if (wakeup_reason != ESP_SLEEP_WAKEUP_GPIO) {
     goToDeepSleep();
   }
 }
@@ -77,12 +83,13 @@ void goToDeepSleep() {
 }
 bool reported = false;
 void loop() {
+  int wekker = 15 * 60 * 1000;
   ArduinoOTA.handle();
   if (!reported) {
     Serial.println("awaiting upload");
     reported = true;
   }
-  if (millis() > 1000 * 3600) {
+  if (millis() > wekker) {
     Serial.println("Going to sleep");
     goToDeepSleep();
   }

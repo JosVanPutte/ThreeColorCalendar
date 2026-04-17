@@ -9,4 +9,4 @@ struct calendarEntries
 
 extern int calEntryCount;
 
-struct calendarEntries *getCalendar(const char *scriptId, String prefix);
+struct calendarEntries *getCalendar(String prefix);

@@ -3,10 +3,9 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
+#include "keys.h"
 
-extern const char *API_KEY;
-
-String apiKey = API_KEY;
+const char *apiKey = API_KEY;
 String city = "Vlaardingen";
 String countryCode = "NL";
 #define INFO Serial.printf

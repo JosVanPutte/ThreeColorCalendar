@@ -21,7 +21,7 @@
 // We gebruiken '64' als paginahoogte om RAM-crashes te voorkomen.
 GxEPD2_3C<GxEPD2_290_C90c, 296> display(GxEPD2_290_C90c(EPD_CS, EPD_DC, EPD_RES, EPD_BUSY));
 
-void setupDisplay(struct calendarEntries *entries, const char * w) {
+void setupDisplay(struct calendarEntries *entries, const char * w, bool crashed) {
   INFO("Display initialisatie met %d entries!\n",calEntryCount);
   pinMode(EPD_CS, OUTPUT);
   pinMode(EPD_DC, OUTPUT);
