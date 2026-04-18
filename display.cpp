@@ -1,10 +1,8 @@
 #include "google.h"
-
+#include "icons.h"
 
 #define INFO Serial.printf
 
-#define DISPLAY_USED_FOR_JOS
-#ifdef DISPLAY_USED_FOR_JOS
 #include <GxEPD2_3C.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 
@@ -21,6 +19,35 @@
 // We gebruiken '64' als paginahoogte om RAM-crashes te voorkomen.
 GxEPD2_3C<GxEPD2_290_C90c, 296> display(GxEPD2_290_C90c(EPD_CS, EPD_DC, EPD_RES, EPD_BUSY));
 
+extern const char *getIconFound();
+
+void drawWeatherIcon(int x, int y) {
+  bool found = false;
+  const char *icon = getIconFound();
+  INFO("draw weather Icon %s\n", icon);
+  for (int i = 0; i < iconCount; i++) {
+    if (!strcmp(icon, weather_map[i].id)) {
+      // Teken de zwarte laag
+      if (weather_map[i].black_data != NULL) {
+        display.drawBitmap(x, y, weather_map[i].black_data, 64, 64, GxEPD_BLACK);
+      }
+      
+      // Teken de rode laag (als die bestaat)
+      if (weather_map[i].red_data != NULL) {
+        display.drawBitmap(x, y, weather_map[i].red_data, 64, 64, GxEPD_RED);
+      }
+      
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    display.drawBitmap(x, y, epd_bitmap_unknown, 64, 64, GxEPD_BLACK);
+    display.setCursor(x, 121);
+    display.print(String(icon) + " ??");
+  }
+}
 void setupDisplay(struct calendarEntries *entries, const char * w, bool crashed) {
   INFO("Display initialisatie met %d entries!\n",calEntryCount);
   pinMode(EPD_CS, OUTPUT);
@@ -58,6 +85,8 @@ void setupDisplay(struct calendarEntries *entries, const char * w, bool crashed)
        y+=16;
     }
 
+    drawWeatherIcon(296 - 64, 128 - 64);
+
     // Rode tekst (SSD1680 ondersteunt dit)
     display.setTextColor(GxEPD_RED);
     display.setCursor(0, 121);
@@ -68,8 +97,3 @@ void setupDisplay(struct calendarEntries *entries, const char * w, bool crashed)
   Serial.println("Tekenen voltooid.");
   display.hibernate();
 }
-#else
-void setupDisplay() {
-    INFO("Geen display geinitialiseerd!\n","");
-}
-#endif

@@ -18,6 +18,12 @@ char *getTimeStr(long t) {
   return buffer;
 }
 
+char iconFound[5];
+
+const char *getIconFound() {
+  return iconFound;
+}
+
 const char *getWeather() {
     HTTPClient http;
     char *weather = (char *) malloc(45);    
@@ -50,7 +56,8 @@ const char *getWeather() {
           int humidity  = doc["main"]["humidity"];
 
           // Weer details
-          const char* icon = doc["weather"][0]["icon"];
+          const char *icon = doc["weather"][0]["icon"];
+          strcpy(iconFound, icon);
           const char* desc = doc["weather"][0]["description"];
 
           // Wind (m/s naar knopen: * 1.94384)
