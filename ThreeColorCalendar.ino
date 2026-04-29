@@ -14,7 +14,7 @@ const char *getWeather();
 void goToDeepSleep();
 const char *setupTime();
 void setupDisplay(struct calendarEntries *entries, const char *w, bool crashed);
-uint64_t getSecondsToSleep(int targetHour);
+long getSecondsToSleep();
 
 void startOTAMode();
 
@@ -73,7 +73,7 @@ void goToDeepSleep() {
   esp_deep_sleep_enable_gpio_wakeup(1ULL << 5, ESP_GPIO_WAKEUP_GPIO_HIGH);
 
   // 4. Optioneel: Stel ook een timer in (bijv. 1 uur) zodat hij sowieso af en toe ververst
-  esp_sleep_enable_timer_wakeup(getSecondsToSleep(4) * 1000000ULL);
+  esp_sleep_enable_timer_wakeup(getSecondsToSleep() * 1000000ULL);
 
   Serial.println("Welterusten.");
   Serial.flush(); // Zorg dat alle tekst nog naar de computer wordt gestuurd

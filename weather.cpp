@@ -25,8 +25,9 @@ const char *getIconFound() {
 }
 
 const char *getWeather() {
+
     HTTPClient http;
-    char *weather = (char *) malloc(45);    
+    char *weather = (char *) malloc(30);    
     // API URL samenstellen
     String url = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "," + countryCode + "&APPID=" + apiKey + "&units=metric";
     INFO("begin %s\n", url.c_str());
@@ -42,8 +43,6 @@ const char *getWeather() {
       filter["weather"][0]["icon"] = true;
       filter["weather"][0]["description"] = true;
       filter["wind"]["speed"] = true;
-      filter["sys"]["sunrise"] = true;
-      filter["sys"]["sunset"] = true;
 
       // 2. Data ophalen en parsen
       StaticJsonDocument<1024> doc;
@@ -64,12 +63,6 @@ const char *getWeather() {
           float windMs = doc["wind"]["speed"];
           float windKnopen = windMs * 1.94384;
 
-          // Zon (Unix timestamps)
-          long sunrise = doc["sys"]["sunrise"];
-          const char * srBuf =  getTimeStr(sunrise);
-          long sunset  = doc["sys"]["sunset"];
-          const char *ssBuf = getTimeStr(sunset);
-
           // Output
       
           INFO("max %s\n", String(maxTemp).c_str());
@@ -78,10 +71,8 @@ const char *getWeather() {
           INFO("Icon %s\n", icon);
           INFO("Wind (Knopen): %s\n", String(windKnopen).c_str());
           INFO("Luchtvochtigheid: %s\n", String(humidity).c_str());
-          INFO("sun up %s\n", srBuf);
-          INFO("sundown %s\n", ssBuf);
-          snprintf(weather, 45, "t %2.1f/%2.1fC %2.1fkt %2d%% ^%s v%s",
-            maxTemp, minTemp, windKnopen, humidity, srBuf, ssBuf);
+          snprintf(weather, 30, "%2.1f/%2.1fC %2.1fkts %2d%%",
+            maxTemp, minTemp, windKnopen, humidity);
       }
       http.end();
     }

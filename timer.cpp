@@ -16,20 +16,39 @@ const char *setupTime() {
   }
   return timeStringBuff;
 }
+int getNextWakeHour(int currentHour) {
+  int targetHours[] = {6, 9, 12, 15, 18, 21};
+  int numTargets = 6;
 
-uint64_t getSecondsToSleep(int targetHour) {
-  if(!getLocalTime(&timeinfo)) return 3600; // Bij fout: slaap een uur
+  for (int i = 0; i < numTargets; i++) {
+    // Zoek het eerste uur in de lijst dat groter is dan nu
+    if (targetHours[i] > currentHour) {
+      return targetHours[i];
+    }
+  }
+
+  // Als we hier komen, is het na 21:00. 
+  // Het volgende wekmoment is 6:00 de volgende dag.
+  return 6; 
+}
+
+long getSecondsToSleep() {
+  if(!getLocalTime(&timeinfo)) return 3600;
   int currentHour = timeinfo.tm_hour;
   int currentMin  = timeinfo.tm_min;
   int currentSec  = timeinfo.tm_sec;
+  int targetHour = getNextWakeHour(currentHour);
   
   // Bereken totaal seconden sinds middernacht
   long currentSeconds = (currentHour * 3600) + (currentMin * 60) + currentSec;
   long targetSeconds = targetHour * 3600;
 
-  long sleepSeconds= (24 * 3600) - currentSeconds + targetSeconds;
+  long sleepSeconds= targetSeconds - currentSeconds;
+  if (sleepSeconds < 0) {
+    sleepSeconds += 24 * 3600;
+  }
 
-  return (uint64_t)sleepSeconds;
+  return sleepSeconds;
 }
 
 struct tm getLocalTime(long timestamp) {

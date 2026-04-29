@@ -21,11 +21,11 @@ GxEPD2_3C<GxEPD2_290_C90c, 296> display(GxEPD2_290_C90c(EPD_CS, EPD_DC, EPD_RES,
 
 extern const char *getIconFound();
 
-void drawWeatherIcon(int x, int y) {
+void drawWeatherIcon(int x, int y, bool crashed) {
   bool found = false;
   const char *icon = getIconFound();
   INFO("draw weather Icon %s\n", icon);
-  for (int i = 0; i < iconCount; i++) {
+  for (int i = 0; i < iconCount && !crashed; i++) {
     if (!strcmp(icon, weather_map[i].id)) {
       // Teken de zwarte laag
       if (weather_map[i].black_data != NULL) {
@@ -43,7 +43,9 @@ void drawWeatherIcon(int x, int y) {
   }
 
   if (!found) {
-    display.drawBitmap(x, y, epd_bitmap_unknown, 64, 64, GxEPD_BLACK);
+    if (!crashed) {
+      display.drawBitmap(x, y, epd_bitmap_unknown, 64, 64, GxEPD_BLACK);
+    }
     display.setCursor(x, 121);
     display.print(String(icon) + " ??");
   }
@@ -61,12 +63,12 @@ void setupDisplay(struct calendarEntries *entries, const char * w, bool crashed)
   INFO("Display geinitialiseerd %d x %d !\n", display.width(), display.height());
 
   // 4. TEKENEN (De "Paged" methode)
-  display.setRotation(3); // Landscape modus
+  display.setRotation(1); // Landscape modus
   display.setTextSize(1);
   display.setFullWindow();
 
   display.firstPage();
-  int y = 16;
+  int y = 12;
   do {
     display.fillScreen(GxEPD_WHITE);
     
@@ -77,19 +79,18 @@ void setupDisplay(struct calendarEntries *entries, const char * w, bool crashed)
     display.setCursor(0, y);
     display.print(entries[ntry].calTime.substring(0,10));
     y += 20;
-    display.setFont();
     for (ntry = 0; ntry < calEntryCount && y < 121 - 8; ++ntry) {
        display.setCursor(10,y);
        String line = entries[ntry].calTime.substring(16,21) + String(" ") + entries[ntry].calTitle;
-       display.print(line.substring(0,49));
+       display.print(line.substring(0,46));
        y+=16;
     }
 
-    drawWeatherIcon(296 - 64, 128 - 64);
+    drawWeatherIcon(296 - 64, 128 - 64, crashed);
 
     // Rode tekst (SSD1680 ondersteunt dit)
     display.setTextColor(GxEPD_RED);
-    display.setCursor(0, 121);
+    display.setCursor(0, 127);
     display.print(w);
 
   } while (display.nextPage());
